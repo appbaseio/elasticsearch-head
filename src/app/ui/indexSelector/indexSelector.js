@@ -26,7 +26,7 @@
 		},
 		
 		_main_template: function() {
-			return { tag: "DIV", cls: "uiIndexSelector", children: i18n.complex( "IndexSelector.SearchIndexForDocs", { tag: "SPAN", cls: "uiIndexSelector-select" } ) };
+			return { tag: "DIV", cls: "uiIndexSelector", children: i18n.complex( "IndexSelector.SearchIndexForDocs" ) };
 		},
 
 		_indexChanged_handler: function() {

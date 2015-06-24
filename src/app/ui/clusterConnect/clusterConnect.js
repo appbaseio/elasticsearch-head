@@ -22,22 +22,14 @@
 		},
 		
 		_reconnect_handler: function() {
-			var base_uri = this.el.find(".uiClusterConnect-uri").val();
+			var base_uri = this.cluster.base_uri;
 			$("body").empty().append(new app.App("body", { id: "es", base_uri: base_uri }));
 		},
 		
 		_main_template: function() {
 			return { tag: "SPAN", cls: "uiClusterConnect", children: [
-				{ tag: "INPUT", type: "text", cls: "uiClusterConnect-uri", onkeyup: function( ev ) {
-					if(ev.which === 13) {
-						ev.preventDefault();
-						this._reconnect_handler();
-					}
-				}.bind(this), id: this.id("baseUri"), value: this.cluster.base_uri },
-				{ tag: "BUTTON", type: "button", text: i18n.text("Header.Connect"), onclick: this._reconnect_handler }
 			]};
 		}
 	});
 
 })( this.jQuery, this.app, this.i18n );
-

@@ -1,3 +1,9 @@
+window.getCurrentApp = function() {
+	return {
+		appName : 'test',
+		host : "http://localhost:9200"
+	}
+};
 (function() {
 
 	var window = this,
@@ -824,9 +830,19 @@
 		},
 		init: function() {
 			this._super();
-			this.config.cluster.get("_cluster/state", function(data) {
-				this.metaData = new app.data.MetaData({state: data});
-				this.fire("ready", this.metaData,  { originalData: data }); // TODO originalData needed for legacy ui.FilterBrowser
+			var appName = window.getCurrentApp().appName;
+			var url = '/{app}/_mapping'.replace('{app}', appName);
+			this.config.cluster.get(url, function(data) {
+				data[appName].aliases = [];
+				var originalData = {
+						state: {
+						metadata : {
+							indices : data
+						}
+					}
+				};
+				this.metaData = new app.data.MetaData(originalData);
+				this.fire("ready", this.metaData,  { originalData: originalData.state }); // TODO originalData needed for legacy ui.FilterBrowser
 			}.bind(this));
 		}
 	});
@@ -885,7 +901,7 @@
 		query: function() {
 			var state = this.getState();
 			this.cluster.post(
-					(this.indices.join(",") || "_all") + "/" + ( this.types.length ? this.types.join(",") + "/" : "") + "_search",
+					getCurrentApp().appName + "/" + ( this.types.length ? this.types.join(",") + "/" : "") + "_search",
 					this.getData(),
 					function(results) {
 						if(results === null) {
@@ -2600,7 +2616,6 @@
 		},
 		_main_template: function() {
 			return { tag: "DIV", id: this.id(), cls: "uiQueryFilter", children: [
-				this._aliasSelector_template(),
 				this._indexSelector_template(),
 				this._typesSelector_template(),
 				this._filters_template()
@@ -2802,7 +2817,7 @@
 					type = this.typeEl.val(),
 					query = JSON.stringify(JSON.parse(this.dataEl.val())),
 					transform = this.transformEl.val(),
-					base_uri = this.base_uriEl.val();
+					base_uri = this.config.cluster.base_uri;
 			if( ev ) { // if the user click request
 				if(this.timer) {
 					window.clearTimeout(this.timer); // stop any cron jobs
@@ -2810,7 +2825,6 @@
 				delete this.prevData; // remove data from previous cron runs
 				this.outEl.text(i18n.text("AnyRequest.Requesting"));
 				if( ! /\/$/.test( base_uri )) {
-					base_uri += "/";
 					this.base_uriEl.val( base_uri );
 				}
 				for(var i = 0; i < this.history.length; i++) {
@@ -2924,7 +2938,6 @@
 						open: true,
 						title: i18n.text("AnyRequest.Query"),
 						body: { tag: "DIV", children: [
-							{ tag: "INPUT", type: "text", name: "base_uri", value: this.config.cluster.config.base_uri },
 							{ tag: "BR" },
 							{ tag: "INPUT", type: "text", name: "path", value: this.config.path },
 							{ tag: "SELECT", name: "method", children: ["POST", "GET", "PUT", "HEAD", "DELETE"].map(ut.option_template) },
@@ -3683,19 +3696,12 @@
 		},
 		
 		_reconnect_handler: function() {
-			var base_uri = this.el.find(".uiClusterConnect-uri").val();
+			var base_uri = this.cluster.base_uri;
 			$("body").empty().append(new app.App("body", { id: "es", base_uri: base_uri }));
 		},
 		
 		_main_template: function() {
 			return { tag: "SPAN", cls: "uiClusterConnect", children: [
-				{ tag: "INPUT", type: "text", cls: "uiClusterConnect-uri", onkeyup: function( ev ) {
-					if(ev.which === 13) {
-						ev.preventDefault();
-						this._reconnect_handler();
-					}
-				}.bind(this), id: this.id("baseUri"), value: this.cluster.base_uri },
-				{ tag: "BUTTON", type: "button", text: i18n.text("Header.Connect"), onclick: this._reconnect_handler }
 			]};
 		}
 	});
@@ -3808,7 +3814,7 @@
 	ui.FilterBrowser = ui.AbstractWidget.extend({
 		defaults: {
 			cluster: null,  // (required) instanceof app.services.Cluster
-			index: "" // (required) name of the index to query
+			index: getCurrentApp().appName // (required) name of the index to query
 		},
 
 		init: function(parent) {
@@ -4031,7 +4037,7 @@
 		},
 		
 		_main_template: function() {
-			return { tag: "DIV", cls: "uiIndexSelector", children: i18n.complex( "IndexSelector.SearchIndexForDocs", { tag: "SPAN", cls: "uiIndexSelector-select" } ) };
+			return { tag: "DIV", cls: "uiIndexSelector", children: i18n.complex( "IndexSelector.SearchIndexForDocs" ) };
 		},
 
 		_indexChanged_handler: function() {
@@ -4063,49 +4069,9 @@
 			this._clusterConnect = new ui.ClusterConnect({
 				cluster: this.config.cluster
 			});
-			var quicks = [
-				{ text: i18n.text("Nav.Info"), path: "" },
-				{ text: i18n.text("Nav.Status"), path: "_status" },
-				{ text: i18n.text("Nav.NodeStats"), path: "_cluster/nodes/stats" },
-				{ text: i18n.text("Nav.ClusterNodes"), path: "_cluster/nodes" },
-				{ text: i18n.text("Nav.Plugins"), path: "_nodes/plugin" },
-				{ text: i18n.text("Nav.ClusterState"), path: "_cluster/state" },
-				{ text: i18n.text("Nav.ClusterHealth"), path: "_cluster/health" },
-				{ text: i18n.text("Nav.Templates"), path: "_template" }
-			];
-			var cluster = this.config.cluster;
-			var quickPanels = {};
-			var menuItems = quicks.map( function( item ) {
-				return { text: item.text, onclick: function() {
-					cluster.get( item.path, function( data ) {
-						quickPanels[ item.path ] && quickPanels[ item.path ].el && quickPanels[ item.path ].remove();
-						quickPanels[ item.path ] = new ui.JsonPanel({
-							title: item.text,
-							json: data
-						});
-					} );
-				} };
-			}, this );
-			this._quickMenu = new ui.MenuButton({
-				label: i18n.text("NodeInfoMenu.Title"),
-				menu: new ui.MenuPanel({
-					items: menuItems
-				})
-			});
 			this.el = $.joey( this._main_template() );
-			this.nameEl = this.el.find(".uiHeader-name");
-			this.statEl = this.el.find(".uiHeader-status");
 			this._clusterState = this.config.clusterState;
-			this._clusterState.on("data", function( state ) {
-				var shards = state.status._shards;
-				var colour = state.clusterHealth.status;
-				var name = state.clusterState.cluster_name;
-				this.nameEl.text( name );
-				this.statEl
-					.text( i18n.text("Header.ClusterHealth", colour, shards.successful, shards.total ) )
-					.css( "background", colour );
-			}.bind(this));
-			this.statEl.text( i18n.text("Header.ClusterNotConnected") ).css("background", "grey");
+
 			this._clusterState.refresh();
 		},
 		_main_template: function() { return (
@@ -4251,7 +4217,7 @@
 		init: function(parent) {
 			this._super();
 			this.prefs = services.Preferences.instance();
-			this.base_uri = this.config.base_uri || this.prefs.get("app-base_uri") || "http://localhost:9200";
+			this.base_uri = this.config.base_uri || this.prefs.get("app-base_uri") || getCurrentApp().host || "http://localhost:9200";
 			if( this.base_uri.charAt( this.base_uri.length - 1 ) !== "/" ) {
 				// XHR request fails if the URL is not ending with a "/"
 				this.base_uri += "/";
@@ -4269,7 +4235,6 @@
 				cluster: this.cluster
 			});
 
-			this._header = new ui.Header({ cluster: this.cluster, clusterState: this._clusterState });
 			this.$body = $.joey( this._body_template() );
 			this.el = $.joey(this._main_template());
 			this.attach( parent );
@@ -4353,8 +4318,6 @@
 				{ tag: "DIV", id: this.id("header"), cls: "uiApp-header", children: [
 					this._header,
 					{ tag: "DIV", cls: "uiApp-headerMenu", children: [
-						{ tag: "DIV", cls: "uiApp-headerMenuItem pull-left", text: i18n.text("Nav.Overview"), onclick: this._openClusterOverview_handler },
-						{ tag: "DIV", cls: "uiApp-headerMenuItem pull-left", text: i18n.text("Nav.Indices"), onclick: this._openIndexOverview_handler },
 						{ tag: "DIV", cls: "uiApp-headerMenuItem pull-left", text: i18n.text("Nav.Browser"), onclick: this._openBrowser_handler },
 						{ tag: "DIV", cls: "uiApp-headerMenuItem pull-left", text: i18n.text("Nav.StructuredQuery"), onclick: this._openStructuredQuery_handler, children: [
 							{ tag: "A", cls: "uiApp-headerNewMenuItem ", text: ' [+]' }

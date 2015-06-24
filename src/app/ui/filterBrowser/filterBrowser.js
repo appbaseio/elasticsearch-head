@@ -7,7 +7,7 @@
 	ui.FilterBrowser = ui.AbstractWidget.extend({
 		defaults: {
 			cluster: null,  // (required) instanceof app.services.Cluster
-			index: "" // (required) name of the index to query
+			index: getCurrentApp().appName // (required) name of the index to query
 		},
 
 		init: function(parent) {

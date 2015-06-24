@@ -9,9 +9,19 @@
 		},
 		init: function() {
 			this._super();
-			this.config.cluster.get("_cluster/state", function(data) {
-				this.metaData = new app.data.MetaData({state: data});
-				this.fire("ready", this.metaData,  { originalData: data }); // TODO originalData needed for legacy ui.FilterBrowser
+			var appName = window.getCurrentApp().appName;
+			var url = '/{app}/_mapping'.replace('{app}', appName);
+			this.config.cluster.get(url, function(data) {
+				data[appName].aliases = [];
+				var originalData = {
+						state: {
+						metadata : {
+							indices : data
+						}
+					}
+				};
+				this.metaData = new app.data.MetaData(originalData);
+				this.fire("ready", this.metaData,  { originalData: originalData.state }); // TODO originalData needed for legacy ui.FilterBrowser
 			}.bind(this));
 		}
 	});

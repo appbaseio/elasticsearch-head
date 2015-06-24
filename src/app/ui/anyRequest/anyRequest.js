@@ -46,7 +46,7 @@
 					type = this.typeEl.val(),
 					query = JSON.stringify(JSON.parse(this.dataEl.val())),
 					transform = this.transformEl.val(),
-					base_uri = this.base_uriEl.val();
+					base_uri = this.config.cluster.base_uri;
 			if( ev ) { // if the user click request
 				if(this.timer) {
 					window.clearTimeout(this.timer); // stop any cron jobs
@@ -168,7 +168,6 @@
 						open: true,
 						title: i18n.text("AnyRequest.Query"),
 						body: { tag: "DIV", children: [
-							{ tag: "INPUT", type: "text", name: "base_uri", value: this.config.cluster.config.base_uri },
 							{ tag: "BR" },
 							{ tag: "INPUT", type: "text", name: "path", value: this.config.path },
 							{ tag: "SELECT", name: "method", children: ["POST", "GET", "PUT", "HEAD", "DELETE"].map(ut.option_template) },

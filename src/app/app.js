@@ -10,7 +10,7 @@
 		init: function(parent) {
 			this._super();
 			this.prefs = services.Preferences.instance();
-			this.base_uri = this.config.base_uri || this.prefs.get("app-base_uri") || "http://localhost:9200";
+			this.base_uri = this.config.base_uri || this.prefs.get("app-base_uri") || getCurrentApp().host || "http://localhost:9200";
 			if( this.base_uri.charAt( this.base_uri.length - 1 ) !== "/" ) {
 				// XHR request fails if the URL is not ending with a "/"
 				this.base_uri += "/";
@@ -28,7 +28,6 @@
 				cluster: this.cluster
 			});
 
-			this._header = new ui.Header({ cluster: this.cluster, clusterState: this._clusterState });
 			this.$body = $.joey( this._body_template() );
 			this.el = $.joey(this._main_template());
 			this.attach( parent );
@@ -112,8 +111,6 @@
 				{ tag: "DIV", id: this.id("header"), cls: "uiApp-header", children: [
 					this._header,
 					{ tag: "DIV", cls: "uiApp-headerMenu", children: [
-						{ tag: "DIV", cls: "uiApp-headerMenuItem pull-left", text: i18n.text("Nav.Overview"), onclick: this._openClusterOverview_handler },
-						{ tag: "DIV", cls: "uiApp-headerMenuItem pull-left", text: i18n.text("Nav.Indices"), onclick: this._openIndexOverview_handler },
 						{ tag: "DIV", cls: "uiApp-headerMenuItem pull-left", text: i18n.text("Nav.Browser"), onclick: this._openBrowser_handler },
 						{ tag: "DIV", cls: "uiApp-headerMenuItem pull-left", text: i18n.text("Nav.StructuredQuery"), onclick: this._openStructuredQuery_handler, children: [
 							{ tag: "A", cls: "uiApp-headerNewMenuItem ", text: ' [+]' }

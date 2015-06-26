@@ -10,7 +10,7 @@
 		init: function() {
 			this._super();
 			var appName = window.getCurrentApp().appName;
-			var url = '/{app}/_mapping'.replace('{app}', appName);
+			var url = '{app}/_mapping'.replace('{app}', appName);
 			this.config.cluster.get(url, function(data) {
 				data[appName].aliases = [];
 				var originalData = {

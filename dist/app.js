@@ -1,9 +1,3 @@
-window.getCurrentApp = function() {
-	return {
-		appName : 'test',
-		host : "http://localhost:9200"
-	}
-};
 (function() {
 
 	var window = this,
@@ -831,7 +825,7 @@ window.getCurrentApp = function() {
 		init: function() {
 			this._super();
 			var appName = window.getCurrentApp().appName;
-			var url = '/{app}/_mapping'.replace('{app}', appName);
+			var url = '{app}/_mapping'.replace('{app}', appName);
 			this.config.cluster.get(url, function(data) {
 				data[appName].aliases = [];
 				var originalData = {
@@ -2825,6 +2819,7 @@ window.getCurrentApp = function() {
 				delete this.prevData; // remove data from previous cron runs
 				this.outEl.text(i18n.text("AnyRequest.Requesting"));
 				if( ! /\/$/.test( base_uri )) {
+					base_uri += "/";
 					this.base_uriEl.val( base_uri );
 				}
 				for(var i = 0; i < this.history.length; i++) {
@@ -3707,8 +3702,6 @@ window.getCurrentApp = function() {
 	});
 
 })( this.jQuery, this.app, this.i18n );
-
-
 (function( $, app, i18n ) {
 
 	var ui = app.ns("ui");
@@ -4217,19 +4210,22 @@ window.getCurrentApp = function() {
 		init: function(parent) {
 			this._super();
 			this.prefs = services.Preferences.instance();
-			this.base_uri = this.config.base_uri || this.prefs.get("app-base_uri") || getCurrentApp().host || "http://localhost:9200";
+
+			var hasHost = getCurrentApp && getCurrentApp() && getCurrentApp().host;
+			var host = hasHost && (getCurrentApp().host + getCurrentApp().appName)
+
+			this.base_uri = this.config.base_uri || this.prefs.get("app-base_uri") || host || "http://localhost:9200";
 			if( this.base_uri.charAt( this.base_uri.length - 1 ) !== "/" ) {
 				// XHR request fails if the URL is not ending with a "/"
 				this.base_uri += "/";
 			}
-			if( this.config.auth_user ) {
-				var credentials = window.btoa( this.config.auth_user + ":" + this.config.auth_password );
-				$.ajaxSetup({
-					headers: {
-						"Authorization": "Basic " + credentials
-					}
-				});
-			}
+			var user = getCurrentApp().username;
+			var pass = getCurrentApp().password;
+			$.ajaxSetup({
+				headers: {
+					"Authorization": "Basic " + window.btoa(user + ":" + pass)
+				}
+			});
 			this.cluster = new services.Cluster({ base_uri: this.base_uri });
 			this._clusterState = new services.ClusterState({
 				cluster: this.cluster

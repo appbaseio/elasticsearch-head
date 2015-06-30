@@ -10,7 +10,11 @@
 		init: function(parent) {
 			this._super();
 			this.prefs = services.Preferences.instance();
-			this.base_uri = this.config.base_uri || this.prefs.get("app-base_uri") || getCurrentApp().host || "http://localhost:9200";
+
+			var hasHost = getCurrentApp && getCurrentApp() && getCurrentApp().host;
+			var host = hasHost && (getCurrentApp().host + getCurrentApp().appName)
+
+			this.base_uri = this.config.base_uri || this.prefs.get("app-base_uri") || host || "http://localhost:9200";
 			if( this.base_uri.charAt( this.base_uri.length - 1 ) !== "/" ) {
 				// XHR request fails if the URL is not ending with a "/"
 				this.base_uri += "/";

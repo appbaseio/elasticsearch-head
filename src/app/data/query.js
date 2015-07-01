@@ -50,7 +50,7 @@
 		query: function() {
 			var state = this.getState();
 			this.cluster.post(
-					getCurrentApp().appName + "/" + ( this.types.length ? this.types.join(",") + "/" : "") + "_search",
+					"_search",
 					this.getData(),
 					function(results) {
 						if(results === null) {

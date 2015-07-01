@@ -11,7 +11,7 @@
 			this.update();
 		},
 		update: function() {
-			this.cluster.get( "_status", this._update_handler );
+			this.cluster.get( "/_status", this._update_handler );
 		},
 		
 		_update_handler: function(data) {

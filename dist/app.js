@@ -825,7 +825,7 @@
 		init: function() {
 			this._super();
 			var appName = window.getCurrentApp().appName;
-			var url = '{app}/_mapping'.replace('{app}', appName);
+			var url = '/_mapping';
 			this.config.cluster.get(url, function(data) {
 				data[appName].aliases = [];
 				var originalData = {
@@ -895,7 +895,7 @@
 		query: function() {
 			var state = this.getState();
 			this.cluster.post(
-					getCurrentApp().appName + "/" + ( this.types.length ? this.types.join(",") + "/" : "") + "_search",
+					"_search",
 					this.getData(),
 					function(results) {
 						if(results === null) {
@@ -1328,7 +1328,7 @@
 				clusterState = data;
 				updateModel.call( self );
 			});
-			this.cluster.get("_status", function( data ) {
+			this.cluster.get("/_status", function( data ) {
 				status = data;
 				updateModel.call( self );
 			});
@@ -4015,7 +4015,7 @@
 			this.update();
 		},
 		update: function() {
-			this.cluster.get( "_status", this._update_handler );
+			this.cluster.get( "/_status", this._update_handler );
 		},
 		
 		_update_handler: function(data) {
@@ -4212,13 +4212,10 @@
 			this.prefs = services.Preferences.instance();
 
 			var hasHost = getCurrentApp && getCurrentApp() && getCurrentApp().host;
-			var host = hasHost && (getCurrentApp().host + getCurrentApp().appName)
+			var host = hasHost && (getCurrentApp().host + '/' + getCurrentApp().appName)
 
-			this.base_uri = this.config.base_uri || this.prefs.get("app-base_uri") || host || "http://localhost:9200";
-			if( this.base_uri.charAt( this.base_uri.length - 1 ) !== "/" ) {
-				// XHR request fails if the URL is not ending with a "/"
-				this.base_uri += "/";
-			}
+			this.base_uri = host;
+
 			var user = getCurrentApp().username;
 			var pass = getCurrentApp().password;
 			$.ajaxSetup({

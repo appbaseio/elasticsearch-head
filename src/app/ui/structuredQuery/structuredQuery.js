@@ -10,13 +10,13 @@
 		_baseCls: "uiStructuredQuery",
 		init: function(parent) {
 			this._super();
+			this.el = $(this._main_template());
+			this.out = this.el.find("DIV.uiStructuredQuery-out");
+			this.attach( parent );
 			this.selector = new ui.IndexSelector({
 				onIndexChanged: this._indexChanged_handler,
 				cluster: this.config.cluster
 			});
-			this.el = $(this._main_template());
-			this.out = this.el.find("DIV.uiStructuredQuery-out");
-			this.attach( parent );
 		},
 		
 		_indexChanged_handler: function( index ) {

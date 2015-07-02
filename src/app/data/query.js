@@ -50,7 +50,7 @@
 		query: function() {
 			var state = this.getState();
 			this.cluster.post(
-					"_search",
+					"/_search",
 					this.getData(),
 					function(results) {
 						if(results === null) {

@@ -895,7 +895,7 @@
 		query: function() {
 			var state = this.getState();
 			this.cluster.post(
-					"_search",
+					"/_search",
 					this.getData(),
 					function(results) {
 						if(results === null) {
@@ -2772,7 +2772,7 @@
 	ui.AnyRequest = ui.Page.extend({
 		defaults: {
 			cluster: null,       // (required) instanceof app.services.Cluster
-			path: "_search",     // default uri to send a request to
+			path: "/_search",     // default uri to send a request to
 			query: { query: { match_all: { }}},
 			transform: "  return root;" // default transformer function (does nothing)
 		},
@@ -3714,13 +3714,13 @@
 		_baseCls: "uiStructuredQuery",
 		init: function(parent) {
 			this._super();
+			this.el = $(this._main_template());
+			this.out = this.el.find("DIV.uiStructuredQuery-out");
+			this.attach( parent );
 			this.selector = new ui.IndexSelector({
 				onIndexChanged: this._indexChanged_handler,
 				cluster: this.config.cluster
 			});
-			this.el = $(this._main_template());
-			this.out = this.el.find("DIV.uiStructuredQuery-out");
-			this.attach( parent );
 		},
 		
 		_indexChanged_handler: function( index ) {
@@ -3907,7 +3907,7 @@
 			if(this.el.find(".uiFilterBrowser-showSrc").attr("checked")) {
 				this.fire("searchSource", search.search);
 			}
-			this._cluster.post( this.config.index + "/_search", search.getData(), this._results_handler );
+			this._cluster.post( "/_search", search.getData(), this._results_handler );
 		},
 		
 		_results_handler: function( data ) {
@@ -4015,18 +4015,18 @@
 			this.update();
 		},
 		update: function() {
-			this.cluster.get( "/_status", this._update_handler );
+			this._indexChanged_handler();
 		},
 		
 		_update_handler: function(data) {
-			var options = [];
-			var index_names = Object.keys(data.indices).sort();
-			for(var i=0; i < index_names.length; i++) { 
-				name = index_names[i];
-				options.push(this._option_template(name, data.indices[name])); 
-			}
-			this.el.find(".uiIndexSelector-select").empty().append(this._select_template(options));
-			this._indexChanged_handler();
+			// var options = [];
+			// var index_names = Object.keys(data.indices).sort();
+			// for(var i=0; i < index_names.length; i++) { 
+			// 	name = index_names[i];
+			// 	options.push(this._option_template(name, data.indices[name])); 
+			// }
+			// this.el.find(".uiIndexSelector-select").empty().append(this._select_template(options));
+			// this._indexChanged_handler();
 		},
 		
 		_main_template: function() {
@@ -4034,7 +4034,7 @@
 		},
 
 		_indexChanged_handler: function() {
-			this.fire("indexChanged", this.el.find("SELECT").val());
+			this.fire("indexChanged", getCurrentApp().appName);
 		},
 
 		_select_template: function(options) {

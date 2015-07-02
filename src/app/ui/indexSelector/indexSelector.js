@@ -11,18 +11,18 @@
 			this.update();
 		},
 		update: function() {
-			this.cluster.get( "/_status", this._update_handler );
+			this._indexChanged_handler();
 		},
 		
 		_update_handler: function(data) {
-			var options = [];
-			var index_names = Object.keys(data.indices).sort();
-			for(var i=0; i < index_names.length; i++) { 
-				name = index_names[i];
-				options.push(this._option_template(name, data.indices[name])); 
-			}
-			this.el.find(".uiIndexSelector-select").empty().append(this._select_template(options));
-			this._indexChanged_handler();
+			// var options = [];
+			// var index_names = Object.keys(data.indices).sort();
+			// for(var i=0; i < index_names.length; i++) { 
+			// 	name = index_names[i];
+			// 	options.push(this._option_template(name, data.indices[name])); 
+			// }
+			// this.el.find(".uiIndexSelector-select").empty().append(this._select_template(options));
+			// this._indexChanged_handler();
 		},
 		
 		_main_template: function() {
@@ -30,7 +30,7 @@
 		},
 
 		_indexChanged_handler: function() {
-			this.fire("indexChanged", this.el.find("SELECT").val());
+			this.fire("indexChanged", getCurrentApp().appName);
 		},
 
 		_select_template: function(options) {

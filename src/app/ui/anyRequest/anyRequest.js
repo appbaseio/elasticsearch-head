@@ -7,7 +7,7 @@
 	ui.AnyRequest = ui.Page.extend({
 		defaults: {
 			cluster: null,       // (required) instanceof app.services.Cluster
-			path: "_search",     // default uri to send a request to
+			path: "/_search",     // default uri to send a request to
 			query: { query: { match_all: { }}},
 			transform: "  return root;" // default transformer function (does nothing)
 		},

@@ -107,7 +107,7 @@
 			if(this.el.find(".uiFilterBrowser-showSrc").attr("checked")) {
 				this.fire("searchSource", search.search);
 			}
-			this._cluster.post( this.config.index + "/_search", search.getData(), this._results_handler );
+			this._cluster.post( "/_search", search.getData(), this._results_handler );
 		},
 		
 		_results_handler: function( data ) {

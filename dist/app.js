@@ -824,7 +824,7 @@
 		},
 		init: function() {
 			this._super();
-			var appName = window.getCurrentApp().appName;
+			var appName = getCurrentApp().appName;
 			var url = '/_mapping';
 			this.config.cluster.get(url, function(data) {
 				data[appName].aliases = [];

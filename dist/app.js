@@ -1,3 +1,11 @@
+getCurrentApp = function() {
+		return {
+                appName: "asdffffff",
+                host: "https://scalr.api.appbase.io",
+                username: "i8yKxYJh3",
+                password: "7057241d-78ce-44ab-bd67-c22f389d6368"
+            }
+	};
 (function() {
 
 	var window = this,
@@ -827,6 +835,11 @@
 			var appName = getCurrentApp().appName;
 			var url = '/_mapping';
 			this.config.cluster.get(url, function(data) {
+				var new_data = {}
+				for (var key in data) {
+					new_data[appName] = data[key]
+				}
+				data = new_data
 				data[appName].aliases = [];
 				var originalData = {
 						state: {
@@ -895,7 +908,7 @@
 		query: function() {
 			var state = this.getState();
 			this.cluster.post(
-					"/_search",
+					"/" + ( this.types.length ? this.types.join(",") + "/" : "") + "_search",
 					this.getData(),
 					function(results) {
 						if(results === null) {
